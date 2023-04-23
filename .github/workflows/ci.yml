@@ -51,7 +51,6 @@ jobs:
           name: Clippy Output
   test:
     name: Test
-    env:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
