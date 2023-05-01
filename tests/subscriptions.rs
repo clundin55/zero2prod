@@ -10,20 +10,8 @@ async fn spawn_app() -> Result<String> {
         .expect("Unable to determine local port")
         .port();
     let url = format!("http://localhost:{port}");
-
     let _ = tokio::spawn(run(listener));
     Ok(url)
-}
-
-#[tokio::test]
-async fn health_check() {
-    let url = spawn_app().await.unwrap();
-
-    let response = reqwest::get(&format!("{url}/health_check"))
-        .await
-        .expect("Failed to run health check");
-    assert!(response.status().is_success());
-    assert_eq!(Some(0), response.content_length());
 }
 
 #[tokio::test]
