@@ -59,5 +59,11 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
+      - name: Start test db
+        run: |
+          cd tools/db && docker build . -t testdb -f Dockerfile && docker run -p 5432:5432 -t testdb
+      - name: Wait for test db to be ready
+        run: |
+          until docker exec testdb pq_isready; do sleep 1; done
       - name: Run tests
         run: cargo test

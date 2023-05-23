@@ -2,8 +2,8 @@ use axum::extract::Form;
 
 #[derive(serde::Deserialize, Debug)]
 pub struct FormData {
-    email: String,
-    name: String,
+    pub email: String,
+    pub name: String,
 }
 
 pub async fn subscribe(user_data: Form<FormData>) {

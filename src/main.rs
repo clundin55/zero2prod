@@ -6,7 +6,7 @@ use anyhow::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = dbg!(get_config())?;
+    let config = get_config()?;
     let listener = TcpListener::bind(format!("localhost:{}", config.application_port))?;
     run(listener).await
 }
