@@ -1,23 +1,27 @@
 use anyhow::Result;
+use sqlx::PgPool;
 use std::net::TcpListener;
 
-use zero2prod::startup::run;
+use zero2prod::{configuration::get_config, startup::run};
 
-async fn spawn_app() -> Result<String> {
+async fn spawn_app() -> Result<(String, PgPool)> {
     let listener = TcpListener::bind("localhost:0").expect("Failed to find an open port.");
     let port = listener
         .local_addr()
         .expect("Unable to determine local port")
         .port();
     let url = format!("http://localhost:{port}");
+    let dbconfig = get_config().unwrap().database;
+    let db_url = dbconfig.connection_string();
+    let connection = PgPool::connect(&db_url).await.unwrap();
 
-    let _ = tokio::spawn(run(listener));
-    Ok(url)
+    let _ = tokio::spawn(run(listener, connection.clone()));
+    Ok((url, connection))
 }
 
 #[tokio::test]
 async fn health_check() {
-    let url = spawn_app().await.unwrap();
+    let (url, _) = spawn_app().await.unwrap();
 
     let response = reqwest::get(&format!("{url}/health_check"))
         .await
@@ -28,7 +32,7 @@ async fn health_check() {
 
 #[tokio::test]
 async fn subscribe_200_valid_form_data() {
-    let url = spawn_app().await.unwrap();
+    let (url, _) = spawn_app().await.unwrap();
     let client = reqwest::Client::new();
 
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
@@ -45,7 +49,7 @@ async fn subscribe_200_valid_form_data() {
 
 #[tokio::test]
 async fn subscribe_400_when_data_missing() {
-    let url = spawn_app().await.unwrap();
+    let (url, _) = spawn_app().await.unwrap();
     let client = reqwest::Client::new();
     let test_cases = vec![
         ("name=le%20guin", "missing the email"),
