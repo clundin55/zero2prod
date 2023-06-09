@@ -14,6 +14,12 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      - name: Start test db
+        run: |
+          cd tools/db && docker build . -t testdb -f Dockerfile && docker run -p 5432:5432 -t testdb
+      - name: Wait for test db to be ready
+        run: |
+          until docker exec testdb pq_isready; do sleep 1; done
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -28,6 +34,12 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      - name: Start test db
+        run: |
+          cd tools/db && docker build . -t testdb -f Dockerfile && docker run -p 5432:5432 -t testdb
+      - name: Wait for test db to be ready
+        run: |
+          until docker exec testdb pq_isready; do sleep 1; done
       - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
@@ -44,6 +56,12 @@ jobs:
           toolchain: stable
           components: clippy
           override: true
+      - name: Start test db
+        run: |
+          cd tools/db && docker build . -t testdb -f Dockerfile && docker run -p 5432:5432 -t testdb
+      - name: Wait for test db to be ready
+        run: |
+          until docker exec testdb pq_isready; do sleep 1; done
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
